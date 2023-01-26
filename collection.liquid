@@ -1,0 +1,129 @@
+<div class="custom-collection-page grid product-grid">
+  {%- for product in collection.products -%}
+    <div class="grid__item">
+      <div class="swiper swiper-slider">
+        <div class="collection-page-product-image swiper-wrapper">
+          {% for media in product.media %}
+            <div
+              class="custom-product-image swiper-slide"
+              {% if product.selected_or_first_available_variant.featured_media.alt != blank
+                and product.selected_or_first_available_variant.featured_media.alt != media.alt
+              %}
+                style="display: none"
+              {% endif %}
+            >
+              <img
+                class="image-collection motion-reduce"
+                srcset="{{ media | image_url: width: 500 }}"
+                src="{{ media | image_url: width: 500 }}"
+                data-color="{{ media.alt }}"
+              >
+            </div>
+          {% endfor %}
+        </div>
+        <div class="nav-arrows">
+          <div class="swiper-button-prev">&nbsp;</div>
+          <div class="swiper-button-next">&nbsp;</div>
+        </div>
+        <div class="product-variants">
+          {% assign keys = 'Size,size' | split: ',' %}
+          {% for key in keys %}
+            {% if product.options contains key %}
+              <form method="post" action="/cart/add">
+                <input name="id" value="{{ product.selected_or_first_available_variant.id }}" type="hidden">
+                <div class="product_tile_color_holder center">
+                  <div class="quick-add">Quick Add</div>
+                  {% for size_option in product.options_by_name[key].values %}
+                    {% for variant in product.variants %}
+                      {% if variant.options contains size_option %}
+                        {% if variant.image %}
+                          {% assign background_style = size_option %}
+                        {% endif %}
+                      {% endif %}
+                    {% endfor %}
+                    <input
+                      class="addcart"
+                      type="button"
+                      name="{{ product.id }}_card_size"
+                      id="{{ product.id }}_size_{{ forloop.index }}"
+                      value="{{ background_style }}"
+                    >
+                  {% endfor %}
+                </div>
+                <select
+                  name="id"
+                  id="Variants-{{ section.id }}"
+                  class="variant-select__select hidden"
+                  form="{{ product_form_id }}"
+                >
+                  {%- for variant in product.variants -%}
+                    <option
+                      {% if variant == product.selected_or_first_available_variant %}
+                        selected="selected"
+                      {% endif %}
+                      {% if variant.available == false %}
+                        disabled
+                      {% endif %}
+                      value="{{ variant.id }}"
+                      data-variant="{{ variant.title }}"
+                    >
+                      {{ variant.title }}
+                      {%- if variant.available == false %} - {{ 'products.product.sold_out' | t }}{% endif %}
+                      - {{ variant.price | money | strip_html }}
+                    </option>
+                  {%- endfor -%}
+                </select>
+              </form>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      <div class="product-information">
+        <div class="product-title center">
+          <a href="{{ product.url }}">
+            <h3 class="p-title">{{ product.title | escape }}</h3>
+          </a>
+        </div>
+        <div class="product-price center">
+          {% render 'price', product: product, price_class: '' %}
+        </div>
+        {% assign keys = 'Color,color,Colour,colour' | split: ',' %}
+        {% for key in keys %}
+          {% if product.options contains key %}
+            <div class="product_tile_color_holder center">
+              {% for color_option in product.options_by_name[key].values %}
+                {% for variant in product.variants %}
+                  {% if variant.options contains color_option %}
+                    {% if variant.image %}
+                      {% assign background_style = color_option %}
+                    {% endif %}
+                  {% endif %}
+                {% endfor %}
+
+                <input
+                  type="radio"
+                  class="color-btn"
+                  name="{{ product.id }}_card_color"
+                  data-color="{{ background_style }}"
+                  id="{{ product.id }}_color_{{ forloop.index }}"
+                  style="background: {{ background_style }}; background-size: cover;"
+                  {% if forloop.first %}
+                    checked="checked"
+                  {% endif %}
+                >
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.custom-collection-product-grid.name",
+  "settings": []
+}
+{% endschema %}
+
